@@ -15,22 +15,31 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Se usa tu ubicación para enviar alertas médicas con coordenadas."
-      }
+        "NSLocationWhenInUseUsageDescription": "Se usa tu ubicación para enviar alertas médicas con coordenadas.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.unihealth.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "package": "com.unihealth.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "apiUrl": "http://10.0.2.2:8000"
-    }
+      "apiUrl": "http://192.168.0.2:8001",
+      "eas": {
+        "projectId": "7011bfd2-fe17-41da-b378-153cadb72cba"
+      }
+    },
+    "owner": "andredellien"
   }
 }

@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { useAuth } from "@context/AuthContext";
-import { theme } from "@styles/them";
+import { theme } from "../styles/theme";
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();

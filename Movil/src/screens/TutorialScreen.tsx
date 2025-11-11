@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@context/AuthContext";
-import { theme } from "@styles/them";
+import { theme } from "../styles/theme";
 
 const TUTORIAL_STEPS = [
   {
@@ -59,7 +59,7 @@ export default function TutorialScreen() {
           <Text style={styles.cardDescription}>{currentTutorial.description}</Text>
         </View>
 
-        <View style={styles.progressDots}>
+        <View style={styles.progressDots} testID="progress-dots">
           {TUTORIAL_STEPS.map((_, index) => (
             <View
               key={index}

@@ -1,0 +1,119 @@
+name: Detox E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-ios:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'Movil/package-lock.json'
+    
+    - name: Install dependencies
+      working-directory: ./Movil
+      run: npm ci
+    
+    - name: Setup iOS Simulator
+      uses: futureware-tech/simulator-action@v2
+      with:
+        model: 'iPhone 15'
+        
+    - name: Install Expo CLI
+      run: npm install -g @expo/cli expo-dev-client
+    
+    - name: Start Expo development server
+      working-directory: ./Movil
+      run: |
+        expo start --dev-client --ios &
+        sleep 30
+    
+    - name: Build for Detox
+      working-directory: ./Movil
+      run: npm run build:ios
+    
+    - name: Run Detox tests
+      working-directory: ./Movil
+      run: npm run test:e2e:ios
+      
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: detox-artifacts-ios
+        path: |
+          Movil/artifacts/
+          
+  test-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'Movil/package-lock.json'
+    
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+    
+    - name: Install dependencies
+      working-directory: ./Movil
+      run: npm ci
+    
+    - name: Create AVD
+      run: |
+        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33"
+        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-33;google_apis;x86_64"
+        echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n Pixel_7_API_33 -k "system-images;android-33;google_apis;x86_64"
+    
+    - name: Start AVD
+      run: |
+        $ANDROID_HOME/emulator/emulator -avd Pixel_7_API_33 -no-window -no-audio -no-boot-anim &
+        adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
+        
+    - name: Install Expo CLI
+      run: npm install -g @expo/cli expo-dev-client
+    
+    - name: Start Expo development server
+      working-directory: ./Movil
+      run: |
+        expo start --dev-client --android &
+        sleep 30
+    
+    - name: Build for Detox
+      working-directory: ./Movil
+      run: npm run build:android
+    
+    - name: Run Detox tests
+      working-directory: ./Movil
+      run: npm run test:e2e:android
+      
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: detox-artifacts-android
+        path: |
+          Movil/artifacts/

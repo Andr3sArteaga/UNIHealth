@@ -1,0 +1,58 @@
+{
+  "testRunner": {
+    "args": {
+      "config": "e2e/jest.config.js",
+      "maxWorkers": 1
+    }
+  },
+  "apps": {
+    "ios.debug": {
+      "type": "expo.development.client",
+      "binaryPath": "build/Build/Products/Debug-iphonesimulator/EXDevClient.app"
+    },
+    "ios.release": {
+      "type": "expo.development.client",
+      "binaryPath": "build/Build/Products/Release-iphonesimulator/EXDevClient.app"
+    },
+    "android.debug": {
+      "type": "expo.development.client",
+      "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk"
+    },
+    "android.release": {
+      "type": "expo.development.client",
+      "binaryPath": "android/app/build/outputs/apk/release/app-release.apk"
+    }
+  },
+  "devices": {
+    "simulator": {
+      "type": "ios.simulator",
+      "device": {
+        "type": "iPhone 15"
+      }
+    },
+    "emulator": {
+      "type": "android.emulator",
+      "device": {
+        "avdName": "Pixel_7_API_33"
+      }
+    }
+  },
+  "configurations": {
+    "ios.sim.debug": {
+      "device": "simulator",
+      "app": "ios.debug"
+    },
+    "ios.sim.release": {
+      "device": "simulator", 
+      "app": "ios.release"
+    },
+    "android.emu.debug": {
+      "device": "emulator",
+      "app": "android.debug"
+    },
+    "android.emu.release": {
+      "device": "emulator",
+      "app": "android.release"
+    }
+  }
+}

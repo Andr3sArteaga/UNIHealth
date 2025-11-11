@@ -1,11 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "target": "es2020",
-    "lib": ["es2020", "dom"],
     "strict": true,
-    "jsx": "react-jsx",
-    "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
       "@screens/*": ["src/screens/*"],
@@ -15,6 +11,5 @@
       "@context/*": ["src/context/*"],
       "@styles/*": ["src/styles/*"]
     }
-  },
-  "include": ["**/*.ts", "**/*.tsx"]
+  }
 }

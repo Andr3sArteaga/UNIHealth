@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
-import { theme } from "@styles/them";
+import { theme } from "../styles/theme";
 
 export default function DiaryScreen() {
   return (

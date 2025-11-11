@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,537 +7,537 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
+  SafeAreaView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { theme } from "@styles/them";
+import { theme } from "../../styles/theme";
+import { useAuth } from "@context/AuthContext";
 
-type FormData = {
-  // Section 1: Personal Data
-  fullName: string;
-  idNumber: string;
-  birthDate: string;
-  age: string;
-  biologicalSex: string;
-  genderIdentity: string;
-  maritalStatus: string;
-  address: string;
-  emergencyContact: string;
-  hasInsurance: string;
-  insuranceName: string;
-
-  // Section 2: Personal Medical History
-  chronicDiseases: string;
-  regularMedications: string;
-  surgeries: string;
-  allergies: string;
-  hospitalizations: string;
-  disabilities: string;
-
-  // Section 3: Family History
-  familyDiseases: string;
-  familyRelationship: string;
-  parentsAlive: string;
-  siblingsDiseases: string;
-
-  // Section 4: Lifestyle
-  smoking: string;
-  alcohol: string;
-  physicalActivity: string;
-  diet: string;
-  sleepHours: string;
-  stressLevel: string;
+type MedicalFormData = {
+  // Phase 1: Basic Info & Account
+  email: string;
+  password: string;
+  confirmPassword: string;
+  nombre: string;
+  cedula: string;
+  
+  // Phase 2: Personal Data
+  fecha_nacimiento: string;
+  telefono: string;
+  direccion: string;
+  contacto_emergencia_nombre: string;
+  contacto_emergencia_telefono: string;
+  
+  // Phase 3: Medical History
+  alergias: string;
+  medicamentos_actuales: string;
+  condiciones_medicas: string;
+  tipo_sangre: string;
+  
+  // Phase 4: Insurance & Lifestyle
+  numero_seguro_social: string;
+  numero_poliza: string;
+  compania_seguro: string;
+  fuma: boolean;
+  consume_alcohol: boolean;
+  actividad_fisica: string;
+  horas_sueno: string;
 };
 
-const SECTIONS = [
-  { id: 1, title: "Datos Personales", icon: "🧍‍♂️", required: true },
-  { id: 2, title: "Antecedentes Médicos", icon: "❤️", required: true },
-  { id: 3, title: "Antecedentes Familiares", icon: "🧬", required: false },
-  { id: 4, title: "Hábitos y Estilo de Vida", icon: "🍎", required: false },
+const PHASES = [
+  { id: 1, title: "Información Básica", icon: "👤" },
+  { id: 2, title: "Datos Personales", icon: "📋" },
+  { id: 3, title: "Historial Médico", icon: "⚕️" },
+  { id: 4, title: "Seguro y Estilo de Vida", icon: "🏥" },
 ];
 
 export default function RegisterScreen() {
-  const navigation = useNavigation();
-  const [currentSection, setCurrentSection] = useState(0);
-  const [formData, setFormData] = useState<FormData>({
-    fullName: "",
-    idNumber: "",
-    birthDate: "",
-    age: "",
-    biologicalSex: "",
-    genderIdentity: "",
-    maritalStatus: "",
-    address: "",
-    emergencyContact: "",
-    hasInsurance: "",
-    insuranceName: "",
-    chronicDiseases: "",
-    regularMedications: "",
-    surgeries: "",
-    allergies: "",
-    hospitalizations: "",
-    disabilities: "",
-    familyDiseases: "",
-    familyRelationship: "",
-    parentsAlive: "",
-    siblingsDiseases: "",
-    smoking: "",
-    alcohol: "",
-    physicalActivity: "",
-    diet: "",
-    sleepHours: "",
-    stressLevel: "",
+  const navigation = useNavigation<any>();
+  const { register } = useAuth();
+  const [currentPhase, setCurrentPhase] = useState(1);
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState<MedicalFormData>({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    nombre: "",
+    cedula: "",
+    fecha_nacimiento: "",
+    telefono: "",
+    direccion: "",
+    contacto_emergencia_nombre: "",
+    contacto_emergencia_telefono: "",
+    alergias: "",
+    medicamentos_actuales: "",
+    condiciones_medicas: "",
+    tipo_sangre: "",
+    numero_seguro_social: "",
+    numero_poliza: "",
+    compania_seguro: "",
+    fuma: false,
+    consume_alcohol: false,
+    actividad_fisica: "",
+    horas_sueno: "",
   });
 
-  const calculateAge = (birthDate: string) => {
-    if (!birthDate) return "";
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age.toString();
-  };
+  // Function removed - using setFormData directly for better state management
 
-  const updateField = (field: keyof FormData, value: string) => {
-    setFormData((prev) => {
-      const updated = { ...prev, [field]: value };
-      if (field === "birthDate") {
-        updated.age = calculateAge(value);
-      }
-      return updated;
-    });
-  };
-
-  const validateSection = (sectionIndex: number): boolean => {
-    const section = SECTIONS[sectionIndex];
-    if (!section.required) return true;
-
-    if (sectionIndex === 0) {
-      // Section 1 validation
-      if (
-        !formData.fullName ||
-        !formData.idNumber ||
-        !formData.birthDate ||
-        !formData.biologicalSex ||
-        !formData.maritalStatus ||
-        !formData.address ||
-        !formData.emergencyContact ||
-        !formData.hasInsurance
-      ) {
-        Alert.alert("Campos requeridos", "Por favor complete todos los campos obligatorios de esta sección.");
-        return false;
-      }
-    } else if (sectionIndex === 1) {
-      // Section 2 validation
-      if (
-        !formData.chronicDiseases ||
-        !formData.regularMedications ||
-        !formData.surgeries ||
-        !formData.allergies ||
-        !formData.hospitalizations ||
-        !formData.disabilities
-      ) {
-        Alert.alert("Campos requeridos", "Por favor complete todos los campos obligatorios de esta sección.");
-        return false;
-      }
+  const validatePhase = () => {
+    switch (currentPhase) {
+      case 1:
+        if (!formData.email || !formData.password || !formData.nombre || !formData.cedula) {
+          Alert.alert("Error", "Por favor completa todos los campos obligatorios");
+          return false;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          Alert.alert("Error", "Las contraseñas no coinciden");
+          return false;
+        }
+        break;
+      case 2:
+        if (!formData.fecha_nacimiento || !formData.telefono) {
+          Alert.alert("Error", "Por favor completa los campos obligatorios");
+          return false;
+        }
+        break;
+      case 3:
+        if (!formData.tipo_sangre) {
+          Alert.alert("Error", "Por favor indica tu tipo de sangre");
+          return false;
+        }
+        break;
+      case 4:
+        break;
     }
     return true;
   };
 
-  const handleNext = () => {
-    if (!validateSection(currentSection)) return;
-
-    if (currentSection < SECTIONS.length - 1) {
-      setCurrentSection(currentSection + 1);
-    } else {
-      handleSubmit();
+  const nextPhase = () => {
+    if (validatePhase()) {
+      setCurrentPhase(prev => Math.min(prev + 1, 4));
     }
   };
 
-  const handlePrevious = () => {
-    if (currentSection > 0) {
-      setCurrentSection(currentSection - 1);
+  const prevPhase = () => {
+    setCurrentPhase(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmit = async () => {
+    if (!validatePhase()) return;
+    
+    setLoading(true);
+    try {
+      const registrationData = {
+        email: formData.email,
+        password: formData.password,
+        nombre: formData.nombre,
+        cedula: formData.cedula,
+        fecha_nacimiento: formData.fecha_nacimiento,
+        telefono: formData.telefono,
+        direccion: formData.direccion,
+        contacto_emergencia_nombre: formData.contacto_emergencia_nombre,
+        contacto_emergencia_telefono: formData.contacto_emergencia_telefono,
+        alergias: formData.alergias,
+        medicamentos_actuales: formData.medicamentos_actuales,
+        condiciones_medicas: formData.condiciones_medicas,
+        tipo_sangre: formData.tipo_sangre,
+        numero_seguro_social: formData.numero_seguro_social,
+        numero_poliza: formData.numero_poliza,
+        compania_seguro: formData.compania_seguro,
+      };
+      
+      await register(registrationData);
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Error al registrarse");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: Submit to API via auth context
-    console.log("Form Data:", formData);
-    // Navigate to Tutorial screen after successful registration
-    navigation.navigate("Tutorial" as never);
-  };
-
-  const renderSection1 = () => (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>🧍‍♂️ SECCIÓN 1: DATOS PERSONALES</Text>
-      <Text style={styles.sectionSubtitle}>(Obligatorios)</Text>
-
-      <FormField
-        label="Nombre completo *"
-        value={formData.fullName}
-        onChangeText={(text) => updateField("fullName", text)}
-        placeholder="Ingrese su nombre completo"
-      />
-
-      <FormField
-        label="Cédula / DNI *"
-        value={formData.idNumber}
-        onChangeText={(text) => updateField("idNumber", text)}
-        placeholder="Ingrese su número de identificación"
-        keyboardType="numeric"
-      />
-
-      <FormField
-        label="Fecha de nacimiento *"
-        value={formData.birthDate}
-        onChangeText={(text) => updateField("birthDate", text)}
-        placeholder="YYYY-MM-DD"
-      />
-
-      <FormField
-        label="Edad"
-        value={formData.age}
-        onChangeText={() => {}}
-        editable={false}
-        placeholder="Se calcula automáticamente"
-      />
-
-      <SelectField
-        label="Sexo biológico *"
-        value={formData.biologicalSex}
-        onValueChange={(value) => updateField("biologicalSex", value)}
-        options={["Masculino", "Femenino", "Intersexual"]}
-      />
-
-      <SelectField
-        label="Identidad de género (Opcional)"
-        value={formData.genderIdentity}
-        onValueChange={(value) => updateField("genderIdentity", value)}
-        options={["Masculino", "Femenino", "Otro"]}
-      />
-
-      <SelectField
-        label="Estado civil *"
-        value={formData.maritalStatus}
-        onValueChange={(value) => updateField("maritalStatus", value)}
-        options={["Soltero", "Casado", "Divorciado", "Viudo", "Unión libre"]}
-      />
-
-      <FormField
-        label="Dirección *"
-        value={formData.address}
-        onChangeText={(text) => updateField("address", text)}
-        placeholder="Ingrese su dirección completa"
-        multiline
-      />
-
-      <FormField
-        label="Teléfono / Contacto de emergencia *"
-        value={formData.emergencyContact}
-        onChangeText={(text) => updateField("emergencyContact", text)}
-        placeholder="Número de teléfono"
-        keyboardType="phone-pad"
-        isCritical
-      />
-
-      <SelectField
-        label="Seguro médico *"
-        value={formData.hasInsurance}
-        onValueChange={(value) => updateField("hasInsurance", value)}
-        options={["Sí", "No"]}
-      />
-
-      {formData.hasInsurance === "Sí" && (
-        <FormField
-          label="Nombre de aseguradora"
-          value={formData.insuranceName}
-          onChangeText={(text) => updateField("insuranceName", text)}
-          placeholder="Nombre de su aseguradora"
-        />
-      )}
-    </View>
-  );
-
-  const renderSection2 = () => (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>❤️ SECCIÓN 2: ANTECEDENTES MÉDICOS PERSONALES</Text>
-      <Text style={styles.sectionSubtitle}>(Obligatorios)</Text>
-
-      <FormField
-        label="¿Padece actualmente alguna enfermedad crónica? *"
-        value={formData.chronicDiseases}
-        onChangeText={(text) => updateField("chronicDiseases", text)}
-        placeholder="Ej: diabetes, hipertensión, asma, etc."
-        multiline
-        isCritical
-      />
-
-      <FormField
-        label="¿Toma algún medicamento de forma regular? *"
-        value={formData.regularMedications}
-        onChangeText={(text) => updateField("regularMedications", text)}
-        placeholder="Nombre y dosis del medicamento"
-        multiline
-        isCritical
-      />
-
-      <FormField
-        label="¿Ha tenido alguna cirugía o procedimiento importante? *"
-        value={formData.surgeries}
-        onChangeText={(text) => updateField("surgeries", text)}
-        placeholder="Describa las cirugías o procedimientos"
-        multiline
-      />
-
-      <FormField
-        label="¿Es alérgico a algún medicamento, alimento o sustancia? * ⚠️ CRÍTICO"
-        value={formData.allergies}
-        onChangeText={(text) => updateField("allergies", text)}
-        placeholder="Especifique todas las alergias conocidas"
-        multiline
-        isCritical
-      />
-
-      <FormField
-        label="¿Ha sido hospitalizado anteriormente? *"
-        value={formData.hospitalizations}
-        onChangeText={(text) => updateField("hospitalizations", text)}
-        placeholder="Motivo y año de hospitalización"
-        multiline
-      />
-
-      <FormField
-        label="¿Padece alguna discapacidad física o mental? *"
-        value={formData.disabilities}
-        onChangeText={(text) => updateField("disabilities", text)}
-        placeholder="Describa si aplica"
-        multiline
-      />
-    </View>
-  );
-
-  const renderSection3 = () => (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>🧬 SECCIÓN 3: ANTECEDENTES FAMILIARES</Text>
-      <Text style={styles.sectionSubtitle}>(Recomendados)</Text>
-
-      <FormField
-        label="¿Hay antecedentes familiares de enfermedades hereditarias?"
-        value={formData.familyDiseases}
-        onChangeText={(text) => updateField("familyDiseases", text)}
-        placeholder="Ej: diabetes, cáncer, hipertensión"
-        multiline
-      />
-
-      <FormField
-        label="Parentesco con el familiar afectado"
-        value={formData.familyRelationship}
-        onChangeText={(text) => updateField("familyRelationship", text)}
-        placeholder="Ej: Padre, Madre, Abuelo, etc."
-      />
-
-      <SelectField
-        label="¿Padres vivos?"
-        value={formData.parentsAlive}
-        onValueChange={(value) => updateField("parentsAlive", value)}
-        options={["Ambos", "Solo padre", "Solo madre", "Ninguno"]}
-      />
-
-      <FormField
-        label="¿Hermanos con enfermedades graves?"
-        value={formData.siblingsDiseases}
-        onChangeText={(text) => updateField("siblingsDiseases", text)}
-        placeholder="Especifique si aplica"
-        multiline
-      />
-    </View>
-  );
-
-  const renderSection4 = () => (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>🍎 SECCIÓN 4: HÁBITOS Y ESTILO DE VIDA</Text>
-      <Text style={styles.sectionSubtitle}>(Recomendados para evaluación general)</Text>
-
-      <SelectField
-        label="¿Fuma o ha fumado alguna vez?"
-        value={formData.smoking}
-        onValueChange={(value) => updateField("smoking", value)}
-        options={["Sí", "No", "Ocasional"]}
-      />
-
-      <SelectField
-        label="¿Consume alcohol?"
-        value={formData.alcohol}
-        onValueChange={(value) => updateField("alcohol", value)}
-        options={["Nunca", "Ocasional", "Frecuente"]}
-      />
-
-      <FormField
-        label="¿Realiza actividad física regularmente?"
-        value={formData.physicalActivity}
-        onChangeText={(text) => updateField("physicalActivity", text)}
-        placeholder="Incluir frecuencia (ej: 3 veces por semana)"
-      />
-
-      <SelectField
-        label="¿Cómo describiría su alimentación diaria?"
-        value={formData.diet}
-        onValueChange={(value) => updateField("diet", value)}
-        options={["Saludable", "Regular", "Poco balanceada"]}
-      />
-
-      <FormField
-        label="Horas de sueño promedio"
-        value={formData.sleepHours}
-        onChangeText={(text) => updateField("sleepHours", text)}
-        placeholder="Ej: 7-8 horas"
-        keyboardType="numeric"
-      />
-
-      <SelectField
-        label="Nivel de estrés (Escala del 1 al 5)"
-        value={formData.stressLevel}
-        onValueChange={(value) => updateField("stressLevel", value)}
-        options={["1", "2", "3", "4", "5"]}
-      />
-    </View>
-  );
-
-  const renderCurrentSection = () => {
-    switch (currentSection) {
-      case 0:
-        return renderSection1();
+  const renderPhaseContent = () => {
+    switch (currentPhase) {
       case 1:
-        return renderSection2();
+        return (
+          <View style={styles.phaseContent}>
+            <Text style={styles.phaseTitle}>Información de Cuenta</Text>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.email}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, email: value }))}
+                placeholder="correo@universidad.edu"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+                testID="email-input"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Contraseña *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.password}
+                onChangeText={(value) => {
+                  console.log("Password changed:", value);
+                  setFormData(prev => ({ ...prev, password: value }));
+                }}
+                placeholder="Mínimo 8 caracteres"
+                secureTextEntry
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+                testID="password-input"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Confirmar Contraseña *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.confirmPassword}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, confirmPassword: value }))}
+                placeholder="Repite tu contraseña"
+                secureTextEntry
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+                testID="confirm-password-input"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nombre Completo *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.nombre}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, nombre: value }))}
+                placeholder="Tu nombre completo"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+                testID="name-input"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Cédula de Identidad *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.cedula}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, cedula: value }))}
+                placeholder="12345678"
+                keyboardType="numeric"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+                testID="cedula-input"
+              />
+            </View>
+          </View>
+        );
+
       case 2:
-        return renderSection3();
+        return (
+          <View style={styles.phaseContent}>
+            <Text style={styles.phaseTitle}>Datos Personales</Text>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Fecha de Nacimiento *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.fecha_nacimiento}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, fecha_nacimiento: value }))}
+                placeholder="1990-01-15"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+                testID="birth-date-input"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Teléfono *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.telefono}
+                onChangeText={(value) => {
+                  console.log("Phone input changed:", value);
+                  setFormData(prev => ({ ...prev, telefono: value }));
+                }}
+                placeholder="412 123 4567"
+                keyboardType="phone-pad"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+                maxLength={15}
+                returnKeyType="next"
+                testID="phone-input"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Dirección</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.direccion}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, direccion: value }))}
+                placeholder="Tu dirección de residencia"
+                multiline
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Contacto de Emergencia</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.contacto_emergencia_nombre}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, contacto_emergencia_nombre: value }))}
+                placeholder="Nombre del contacto"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Teléfono de Emergencia</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.contacto_emergencia_telefono}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, contacto_emergencia_telefono: value }))}
+                placeholder="412 123 4567"
+                keyboardType="phone-pad"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+          </View>
+        );
+
       case 3:
-        return renderSection4();
+        return (
+          <View style={styles.phaseContent}>
+            <Text style={styles.phaseTitle}>Historial Médico</Text>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Tipo de Sangre *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.tipo_sangre}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, tipo_sangre: value }))}
+                placeholder="A+, O-, B+, etc."
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+                testID="blood-type-input"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Alergias</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.alergias}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, alergias: value }))}
+                placeholder="Describe tus alergias (medicamentos, alimentos, etc.)"
+                multiline
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Medicamentos Actuales</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.medicamentos_actuales}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, medicamentos_actuales: value }))}
+                placeholder="Lista los medicamentos que tomas regularmente"
+                multiline
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Condiciones Médicas</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.condiciones_medicas}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, condiciones_medicas: value }))}
+                placeholder="Describe condiciones médicas relevantes"
+                multiline
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+          </View>
+        );
+
+      case 4:
+        return (
+          <View style={styles.phaseContent}>
+            <Text style={styles.phaseTitle}>Seguro y Estilo de Vida</Text>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Número de Seguro Social</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.numero_seguro_social}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, numero_seguro_social: value }))}
+                placeholder="Número de seguro social"
+                keyboardType="numeric"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Póliza de Seguro</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.numero_poliza}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, numero_poliza: value }))}
+                placeholder="Número de póliza"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Compañía de Seguro</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.compania_seguro}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, compania_seguro: value }))}
+                placeholder="Nombre de la compañía de seguros"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Actividad Física</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.actividad_fisica}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, actividad_fisica: value }))}
+                placeholder="Describe tu nivel de actividad física"
+                multiline
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Horas de Sueño</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.horas_sueno}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, horas_sueno: value }))}
+                placeholder="Promedio de horas de sueño por noche"
+                keyboardType="numeric"
+                autoComplete="off"
+                autoCorrect={false}
+                textContentType="none"
+              />
+            </View>
+          </View>
+        );
+
       default:
         return null;
     }
   };
 
-  const progress = ((currentSection + 1) / SECTIONS.length) * 100;
-
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Registro de Usuario</Text>
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${progress}%` }]} />
-        </View>
-        <Text style={styles.progressText}>
-          Sección {currentSection + 1} de {SECTIONS.length}: {SECTIONS[currentSection].title}
+        <Text style={styles.headerTitle}>Registro Médico</Text>
+        <Text style={styles.headerSubtitle}>
+          Fase {currentPhase} de {PHASES.length}: {PHASES[currentPhase - 1].title}
         </Text>
+        
+        <View style={styles.progressBar}>
+          {PHASES.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.progressDot,
+                index < currentPhase ? styles.progressDotActive : styles.progressDotInactive
+              ]}
+            />
+          ))}
+        </View>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {renderCurrentSection()}
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        {renderPhaseContent()}
       </ScrollView>
 
       <View style={styles.footer}>
-        {currentSection > 0 && (
-          <TouchableOpacity style={styles.buttonSecondary} onPress={handlePrevious}>
-            <Text style={styles.buttonSecondaryText}>Anterior</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.buttonContainer}>
+          {currentPhase > 1 && (
+            <TouchableOpacity
+              style={[styles.button, styles.secondaryButton]}
+              onPress={prevPhase}
+            >
+              <Text style={styles.secondaryButtonText}>Anterior</Text>
+            </TouchableOpacity>
+          )}
+
+          {currentPhase < PHASES.length ? (
+            <TouchableOpacity
+              style={[styles.button, styles.primaryButton]}
+              onPress={nextPhase}
+            >
+              <Text style={styles.primaryButtonText}>Siguiente</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.button, styles.primaryButton]}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              <Text style={styles.primaryButtonText}>
+                {loading ? "Registrando..." : "Completar Registro"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        
         <TouchableOpacity
-          style={[styles.buttonPrimary, currentSection === 0 && styles.buttonPrimaryFull]}
-          onPress={handleNext}
+          style={styles.backToLogin}
+          onPress={() => navigation.navigate("LoginScreen")}
         >
-          <Text style={styles.buttonPrimaryText}>
-            {currentSection === SECTIONS.length - 1 ? "Finalizar" : "Siguiente"}
+          <Text style={styles.backToLoginText}>
+            ¿Ya tienes cuenta? Inicia sesión
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
-}
-
-// Form Field Component
-type FormFieldProps = {
-  label: string;
-  value: string;
-  onChangeText?: (text: string) => void;
-  placeholder?: string;
-  multiline?: boolean;
-  keyboardType?: "default" | "numeric" | "phone-pad" | "email-address";
-  editable?: boolean;
-  isCritical?: boolean;
-};
-
-function FormField({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  multiline = false,
-  keyboardType = "default",
-  editable = true,
-  isCritical = false,
-}: FormFieldProps) {
-  return (
-    <View style={styles.fieldContainer}>
-      <Text style={[styles.fieldLabel, isCritical && styles.criticalLabel]}>
-        {label}
-      </Text>
-      <TextInput
-        style={[
-          styles.input,
-          isCritical && styles.criticalInput,
-          multiline && styles.inputMultiline,
-          !editable && styles.inputDisabled,
-        ]}
-        value={value}
-        onChangeText={onChangeText || (() => {})}
-        placeholder={placeholder}
-        placeholderTextColor={theme.colors.textTertiary}
-        multiline={multiline}
-        numberOfLines={multiline ? 4 : 1}
-        keyboardType={keyboardType}
-        editable={editable}
-      />
-    </View>
-  );
-}
-
-// Select Field Component
-type SelectFieldProps = {
-  label: string;
-  value: string;
-  onValueChange: (value: string) => void;
-  options: string[];
-};
-
-function SelectField({ label, value, onValueChange, options }: SelectFieldProps) {
-  return (
-    <View style={styles.fieldContainer}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.selectContainer}>
-        {options.map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[
-              styles.selectOption,
-              value === option && styles.selectOptionActive,
-            ]}
-            onPress={() => onValueChange(option)}
-          >
-            <Text
-              style={[
-                styles.selectOptionText,
-                value === option && styles.selectOptionTextActive,
-              ]}
-            >
-              {option}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -547,161 +547,111 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   header: {
-    padding: theme.spacing.space4,
+    padding: theme.spacing.space6,
     backgroundColor: theme.colors.white,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-    shadowColor: "#92143A",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
   },
   headerTitle: {
-    fontSize: theme.typography.fontSize2xl,
-    fontWeight: "700",
+    fontSize: theme.typography.fontSize.large,
+    fontWeight: "bold",
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.space3,
+    textAlign: "center",
   },
-  progressBarContainer: {
-    height: 8,
-    backgroundColor: theme.colors.border,
-    borderRadius: 4,
-    overflow: "hidden",
-    marginBottom: theme.spacing.space2,
+  headerSubtitle: {
+    fontSize: theme.typography.fontSize.medium,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
+    marginTop: theme.spacing.space2,
   },
   progressBar: {
-    height: "100%",
-    backgroundColor: theme.colors.primary,
-    borderRadius: 4,
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: theme.spacing.space4,
+    gap: theme.spacing.space2,
   },
-  progressText: {
-    fontSize: theme.typography.fontSizeSm,
-    color: theme.colors.textSecondary,
+  progressDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  progressDotActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  progressDotInactive: {
+    backgroundColor: theme.colors.border,
   },
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    padding: theme.spacing.space4,
+  phaseContent: {
+    padding: theme.spacing.space6,
   },
-  sectionContainer: {
-    marginBottom: theme.spacing.space6,
-  },
-  sectionTitle: {
-    fontSize: theme.typography.fontSizeXl,
-    fontWeight: "700",
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.space1,
-  },
-  sectionSubtitle: {
-    fontSize: theme.typography.fontSizeSm,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.space6,
-  },
-  fieldContainer: {
-    marginBottom: theme.spacing.space5,
-  },
-  fieldLabel: {
-    fontSize: theme.typography.fontSizeBase,
+  phaseTitle: {
+    fontSize: theme.typography.fontSize.large,
     fontWeight: "600",
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.space2,
+    marginBottom: theme.spacing.space6,
+    textAlign: "center",
   },
-  criticalLabel: {
-    color: theme.colors.primary,
+  inputGroup: {
+    marginBottom: theme.spacing.space4,
+  },
+  label: {
+    fontSize: theme.typography.fontSize.medium,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.space2,
+    fontWeight: "500",
   },
   input: {
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: theme.radius,
-    padding: theme.spacing.space3,
-    fontSize: theme.typography.fontSizeBase,
-    color: theme.colors.textPrimary,
-    backgroundColor: theme.colors.white,
-  },
-  criticalInput: {
-    borderColor: theme.colors.primary,
-    borderWidth: 2,
-  },
-  inputMultiline: {
-    minHeight: 100,
-    textAlignVertical: "top",
-  },
-  inputDisabled: {
-    backgroundColor: theme.colors.backgroundAlt,
-    color: theme.colors.textSecondary,
-  },
-  selectContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: theme.spacing.space2,
-  },
-  selectOption: {
+    borderRadius: 8,
     paddingHorizontal: theme.spacing.space4,
-    paddingVertical: theme.spacing.space2,
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    paddingVertical: theme.spacing.space3,
+    fontSize: theme.typography.fontSize.medium,
     backgroundColor: theme.colors.white,
-  },
-  selectOptionActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  selectOptionText: {
-    fontSize: theme.typography.fontSizeBase,
-    color: theme.colors.textPrimary,
-  },
-  selectOptionTextActive: {
-    color: theme.colors.white,
-    fontWeight: "600",
   },
   footer: {
-    flexDirection: "row",
-    padding: theme.spacing.space4,
+    padding: theme.spacing.space6,
     backgroundColor: theme.colors.white,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
-    gap: theme.spacing.space3,
-    shadowColor: "#92143A",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 5,
   },
-  buttonPrimary: {
+  buttonContainer: {
+    flexDirection: "row",
+    gap: theme.spacing.space4,
+  },
+  button: {
     flex: 1,
+    paddingVertical: theme.spacing.space4,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  primaryButton: {
     backgroundColor: theme.colors.primary,
-    paddingVertical: theme.spacing.space3,
-    paddingHorizontal: theme.spacing.space4,
-    borderRadius: theme.radius,
-    alignItems: "center",
-    justifyContent: "center",
   },
-  buttonPrimaryFull: {
-    flex: 1,
+  secondaryButton: {
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
   },
-  buttonPrimaryText: {
+  primaryButtonText: {
     color: theme.colors.white,
-    fontSize: theme.typography.fontSizeBase,
+    fontSize: theme.typography.fontSize.medium,
     fontWeight: "600",
   },
-  buttonSecondary: {
-    flex: 1,
-    backgroundColor: theme.colors.backgroundAlt,
-    paddingVertical: theme.spacing.space3,
-    paddingHorizontal: theme.spacing.space4,
-    borderRadius: theme.radius,
+  secondaryButtonText: {
+    color: theme.colors.primary,
+    fontSize: theme.typography.fontSize.medium,
+    fontWeight: "600",
+  },
+  backToLogin: {
     alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    marginTop: theme.spacing.space4,
   },
-  buttonSecondaryText: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.fontSizeBase,
-    fontWeight: "600",
+  backToLoginText: {
+    fontSize: theme.typography.fontSize.medium,
+    color: theme.colors.primary,
   },
 });
-

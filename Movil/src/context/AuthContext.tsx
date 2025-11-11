@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import * as authService from "@services/auth";
+import { setAuthToken } from "@services/api";
 
 type Role = "patient" | "medic" | "admin";
 
@@ -26,23 +27,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const res = await authService.login({ email, password });
-    setUser({
-      id: res.user.id,
-      name: res.user.name,
-      role: res.user.role as Role,
-      token: res.token,
-    });
+    const userData = {
+      id: res.user.id.toString(),
+      name: res.user.email, // Use email as name for now
+      role: res.user.rol === "user" ? "patient" : res.user.rol as Role,
+      token: res.access_token,
+    };
+    setUser(userData);
+    setAuthToken(res.access_token);
   };
 
   const register = async (data: any) => {
     const res = await authService.register(data);
-    setUser({
-      id: res.user.id,
-      name: res.user.name,
-      role: res.user.role as Role,
-      token: res.token,
+    const userData = {
+      id: res.user.id.toString(),
+      name: res.user.email, // Use email as name for now
+      role: res.user.rol === "user" ? "patient" : res.user.rol as Role,
+      token: res.access_token,
       hasCompletedTutorial: false, // New users need to complete tutorial
-    });
+    };
+    setUser(userData);
+    setAuthToken(res.access_token);
   };
 
   const completeTutorial = () => {
@@ -54,7 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => setUser(null);
+  const logout = () => {
+    setUser(null);
+    setAuthToken();
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, register, logout, completeTutorial }}>

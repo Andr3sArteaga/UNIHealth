@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, Button, TextInput, Alert } from "react-native";
 import * as Location from "expo-location";
 import dayjs from "dayjs";
-import { sendEmergency } from "@services/alerts";
+import { sendEmergency } from "@services/alert";
 
 export default function AlertsScreen() {
   const [type, setType] = useState("caída");
@@ -17,11 +17,10 @@ export default function AlertsScreen() {
     const loc = await Location.getCurrentPositionAsync({});
     try {
       await sendEmergency({
-        type,
-        description: desc,
-        lat: loc.coords.latitude,
-        lng: loc.coords.longitude,
-        occurred_at: dayjs().toISOString(),
+        tipo_alerta_id: 1, // TODO: Map type to proper tipo_alerta_id
+        descripcion: desc || `Emergencia: ${type}`,
+        latitud: loc.coords.latitude,
+        longitud: loc.coords.longitude,
       });
       Alert.alert("Enviado", "Alerta médica registrada.");
     } catch (e: any) {
